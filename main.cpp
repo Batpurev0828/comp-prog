@@ -81,6 +81,7 @@ int main() {
         for (int &i : a) i = lower_bound(d.begin(), d.end(), i) - d.begin();
         vector<int> inv(r - l + 1, 0);
         for (int i = l; i <= r; ++i) {
+            
         }
     }
 }
