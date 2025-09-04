@@ -75,13 +75,13 @@ int main() {
         l--;
         r--;
         vector<int> a(w.begin() + l, w.begin() + r + 1);
-        vector<int> d(w.begin() + l, w.begin() + r + 1);
+        vector<int> d(a);
         sort(d.begin(), d.end());
         d.resize(unique(d.begin(), d.end()) - d.begin());
-        for (int &i : a) i = lower_bound(d.begin(), d.end(), i) - d.begin();
-        vector<int> inv(r - l + 1, 0);
-        for (int i = l; i <= r; ++i) {
-            
+        for (int &i : a) {
+            i = lower_bound(d.begin(), d.end(), i) - d.begin();
+            cout << i << ' ';
         }
+        cout << '\n';
     }
 }
