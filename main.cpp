@@ -10,87 +10,125 @@
 typedef long long ll;
 using namespace std;
 
-#include <bits/stdc++.h>
-using namespace std;
-
-struct SegmentTree {
-    int n;
-    vector<int> tree;   // max in segment
-    vector<int> lazy;   // lazy add
-    SegmentTree(const vector<int>& nums) {
-        n = (int)nums.size();
-        tree.assign(4 * n + 5, INT_MIN);
-        lazy.assign(4 * n + 5, 0);
-        build(1, 0, n - 1, nums);
-    }
-    void build(int node, int l, int r, const vector<int>& nums) {
-        if (l == r) {
-            tree[node] = nums[l];
-            return;
-        }
-        int m = (l + r) >> 1;
-        build(node << 1, l, m, nums);
-        build(node << 1 | 1, m + 1, r, nums);
-        tree[node] = max(tree[node << 1], tree[node << 1 | 1]);
-    }
-    void apply(int node, int val) {
-        tree[node] += val;
-        lazy[node] += val;
-    }
-    void push(int node) {
-        if (lazy[node] != 0) {
-            apply(node << 1, lazy[node]);
-            apply(node << 1 | 1, lazy[node]);
-            lazy[node] = 0;
-        }
-    }
-    void update_range(int node, int l, int r, int ql, int qr, int val) {
-        if (ql > r || qr < l) return;
-        if (ql <= l && r <= qr) {
-            apply(node, val);
-            return;
-        }
-        push(node);
-        int m = (l + r) >> 1;
-        update_range(node << 1, l, m, ql, qr, val);
-        update_range(node << 1 | 1, m + 1, r, ql, qr, val);
-        tree[node] = max(tree[node << 1], tree[node << 1 | 1]);
-    }
-    // find smallest index with value >= v, or -1 if none
-    int find_first_ge(int node, int l, int r, int v) {
-        if (tree[node] < v) return -1;
-        if (l == r) return l;
-        push(node);
-        int m = (l + r) >> 1;
-        if (tree[node << 1] >= v) return find_first_ge(node << 1, l, m, v);
-        return find_first_ge(node << 1 | 1, m + 1, r, v);
-    }
-
-    // wrappers
-    void update_range(int l, int r, int val) { if (l <= r) update_range(1, 0, n - 1, l, r, val); }
-    int find_first_ge(int v) { return find_first_ge(1, 0, n - 1, v); }
+struct Query {
+    int type, a, b;
 };
 
+struct SegmentTree {
+  private:
+    int n;
+    vector<int> nums;
+    vector<int> tree;
+    void build(int i, int L, int R) {
+        if (L == R) {
+            tree[i] = nums[L];
+            return;
+        }
+        int m = (L + R) / 2;
+        int x = 2 * i + 1, y = x + 1;
+        build(x, L, m);
+        build(y, m + 1, R);
+        tree[i] = tree[x] + tree[y];
+    }
+    void update(int i, int L, int R, int p, int v) {
+        if (L == R) {
+            tree[i] += v;
+            return;
+        }
+        int m = (L + R) / 2;
+        int x = 2 * i + 1, y = x + 1;
+        if (p <= m) {
+            update(x, L, m, p, v);
+        } else {
+            update(y, m + 1, R, p, v);
+        }
+        tree[i] = tree[x] + tree[y];
+    }
+    int query(int i, int L, int R, int l, int r) {
+        if (L == l && r == R) {
+            return tree[i];
+        }
+        int m = (L + R) / 2;
+        int x = 2 * i + 1, y = x + 1;
+        if (r <= m) {
+            return query(x, L, m, l, r);
+        } else if (l > m) {
+            return query(y, m + 1, R, l, r);
+        } else {
+            int q1 = query(x, L, m, l, m);
+            int q2 = query(y, m + 1, R, m + 1, r);
+            return q1 + q2;
+        }
+    }
+
+  public:
+    SegmentTree(vector<int> &v) : n(v.size()), nums(v) {
+        tree.assign(4 * n, 0);
+        build(0, 0, n - 1);
+    }
+    void update(int p, int v) { update(0, 0, n - 1, p, v); }
+    int query(int l, int r) { return query(0, 0, n - 1, l, r); }
+};
 
 int main() {
     cin.tie(0)->sync_with_stdio(0);
-    int n;
-    cin >> n;
-    vector<int> a(n);
-    for (int &x : a) cin >> x;
-    vector<int> p(n);
+    int n, q;
+    cin >> n >> q;
+    vector<int> nums(n);
+    vector<int> c(n);
+    int mx = 0;
     for (int i = 0; i < n; ++i) {
-        p[i] = i + 1;
+        cin >> nums[i];
+        c[i] = nums[i];
+        mx = max(mx, nums[i]);
+    }
+    vector<Query> qs(q);
+    for (int i = 0; i < q; ++i) {
+        char t;
+        int a, b;
+        cin >> t >> a >> b;
+        if (t == '!') {
+            c.push_back(b);
+            qs[i] = {0, a, b};
+        } else {
+            c.push_back(a);
+            c.push_back(b);
+            qs[i] = {1, a, b};
+        }
+    }
+    sort(c.begin(), c.end());
+    c.resize(unique(c.begin(), c.end()) - c.begin());
+    // vector<int> freq(c.size() + 1, 0);
+    vector<int> freq(mx + 1, 0);
+    for (int &i : nums) {
+        // i = lower_bound(c.begin(), c.end(), i) - c.begin();
+        ++freq[i];
     }
 
-    SegmentTree tree(p);
-
-    for (int i = 0; i < n; ++i) {
-        int q;
-        cin >> q;
-        int x = tree.find_first_ge(q);
-        if (x == -1) cout << "-1\n";
-        else cout << a[x] << ' ';
-        tree.update_range(q - 1, n - 1, -1);
+    SegmentTree tree(freq);
+    for (int i = 0; i < freq.size(); ++i) {
+        cout << tree.query(i, i) << ' ';
+    }
+    cout << '\n';
+    for (Query &x : qs) {
+        if (x.type == 0) {
+            // x.b = lower_bound(c.begin(), c.end(), x.b) - c.begin();
+            int p = x.a - 1;
+            int v = x.b;
+            --p;
+            tree.update(nums[p], -1);
+            nums[p] = v;
+            tree.update(nums[p], 1);
+            for (int i = 0; i < freq.size(); ++i) {
+                cout << tree.query(i, i) << ' ';
+            }
+            cout << '\n';
+        } else {
+            // x.b = lower_bound(c.begin(), c.end(), x.b) - c.begin();
+            // x.a = lower_bound(c.begin(), c.end(), x.a) - c.begin();
+            int a = x.a;
+            int b = x.b;
+            cout << tree.query(a, b) << '\n';
+        }
     }
 }
