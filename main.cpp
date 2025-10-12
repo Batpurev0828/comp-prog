@@ -13,10 +13,17 @@ using namespace std;
 
 signed main() {
     cin.tie(0)->sync_with_stdio(0);
-    vector<ll> w{1, 1, 1, 1, 1};
-    vector<ll> a{2, 3, 4, 5, 6};
-    vector<ll> b{1, 2, 3, 4, 5};
-    vector<ll> e{0};
-    vector<ll> ans = calculate_costs(w, a, b, e);
-    for (ll &x : ans) cout << x << '\n';
+    int n;
+    cin >> n;
+    vector<int> w(n), a(n), b(n);
+    for (int &i : w) cin >> i;
+    for (int &i : a) cin >> i;
+    for (int &i : b) cin >> i;
+    int q;
+    cin >> q;
+    vector<int> e(q);
+    for (int &i : e) cin >> i;
+    vector<ll> res = calculate_costs(w, a, b, e);
+    for (ll &i : res) cout << i << '\n';
+    
 }
