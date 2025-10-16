@@ -1,36 +1,25 @@
 #include <algorithm>
 #include <cmath>
 #include <iostream>
-#include <queue>
-#include <set>
 #include <vector>
 typedef long long ll;
 using namespace std;
 
-// subtask 2
-vector<ll> calculate_costs(vector<int> w, vector<int> a, vector<int> b, vector<int> e) {
-    ll n = w.size();
+ll solve(vector<pair<ll, ll>> &items, ll d) {
+    
+}
+
+vector<ll> calculate_costs(vector<int> W, vector<int> a, vector<int> b, vector<int> e) {
+    ll n = a.size();
     ll q = e.size();
     vector<ll> ans(q);
-    vector<ll> c(n);
+    vector<pair<ll, ll>> items(n);
     ll sum = 0;
-
-    for (int i = 0; i < n; ++i) {
+    for (ll i = 0; i < n; ++i) {
+        items[i] = {(ll)W[i], a[i] - b[i]};
         sum += b[i];
-        c[i] = (ll)a[i] - b[i];
     }
-    for (int x = 0; x < q; ++x) {
-        ans[x] = sum;
-        if (!(n & 1)) continue;
-        if (e[x] > 1) {
-            ans[x] += *min_element(c.begin(), c.end());
-            continue;
-        }
-        ll add = 1e9;
-        for (int i = 0; i < n; i += 2) {
-            add = min(add, c[i]);
-        }
-        ans[x] += add;
-    }
+    sort(items.begin(), items.end());
+    for (int i = 0; i < q; ++i) ans[i] = solve(items, e[i]);
     return ans;
 }
