@@ -10,59 +10,50 @@
 typedef long long ll;
 using namespace std;
 
-struct Node {
-    int L, R, m, val;
-    Node *x = nullptr;
-    Node *y = nullptr;
-    Node(int _L, int _R, int v) : L(_L), R(_R), val(v) { m = (L + R) / 2; }
-    Node(int _L, int _R) : L(_L), R(_R), val(0) { m = (L + R) / 2; }
-    void update(int p, int v) {
-        if (L == R) {
-            val += v;
-            return;
-        }
-        if (p <= m) {
-            if (x == nullptr) x = new Node(L, m);
-            x->update(p, v);
-        } else {
-            if (y == nullptr) y = new Node(m + 1, R);
-            y->update(p, v);
-        }
-        val = (x ? x->val : 0) + (y ? y->val : 0);
-    }
-    int query(int l, int r) {
-        if (L == l && r == R) {
-            return val;
-        }
-        if (r <= m) {
-            if (x == nullptr) return 0;
-            return x->query(l, r);
-        } else if (l > m) {
-            if (y == nullptr) return 0;
-            return y->query(l, r);
-        } else {
-            int q1, q2;
-            if (x == nullptr) q1 = 0;
-            else q1 = x->query(l, m);
-            if (y == nullptr) q2 = 0;
-            else q2 = y->query(m + 1, r);
-            return q1 + q2;
-        }
-    }
-};
- 
-struct SegmentTree {
-    Node *root;
+const ll inf = 1e18 + 3;
+
+struct DSU {
     int n;
-    SegmentTree(int n) : n(n) { root = new Node(0, n - 1); }
-    void update(int p, int v) {
-        if (p < 0 || p > n - 1) return;
-        root->update(p, v);
+    vector<int> p, rank, xp;
+    DSU(int sz) : n(sz), rank(n, 0), xp(n, 0) {
+        p.resize(n);
+        for (int i = 0; i < n; ++i) p[i] = i;
     }
-    int query(int l, int r) {
-        if (l < 0 || r > n - 1) return -1;
-        return root->query(l, r);
+    int find(int a) { 
+        
+    }
+    int get(int a) {
+        if (a == p[a]) return xp[a];
+        return xp[a] + get(p[a]);
+    }
+    void add(int a, int x) { xp[a] += x; }
+    void join(int a, int b) {
+        a = find(a);
+        b = find(b);
     }
 };
 
-int main() { cin.tie(0)->sync_with_stdio(0); }
+signed main() {
+    cin.tie(0)->sync_with_stdio(0);
+    int n, m;
+    cin >> n >> m;
+    DSU dsu(n);
+    while (m--) {
+        string type;
+        cin >> type;
+        if (type == "join") {
+            int u, v;
+            cin >> u >> v;
+            dsu.join(u - 1, v - 1);
+        } else if (type == "add") {
+            int u, x;
+            cin >> u >> x;
+            dsu.add(u - 1, x);
+        } else {
+            int u;
+            cin >> u;
+            cout << dsu.get(u - 1) << '\n';
+        }
+    }
+    for (int &i : dsu.xp) cout << i << ' ';
+}
