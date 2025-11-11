@@ -9,51 +9,67 @@
 #pragma GCC target("sse,sse2,sse3,ssse3,sse4.1,sse4.2,sse4a,avx,avx2,popcnt,tune=native")
 typedef long long ll;
 using namespace std;
-
-const ll inf = 1e18 + 3;
-
-struct DSU {
-    int n;
-    vector<int> p, rank, xp;
-    DSU(int sz) : n(sz), rank(n, 0), xp(n, 0) {
-        p.resize(n);
-        for (int i = 0; i < n; ++i) p[i] = i;
+ 
+vector<ll> c;
+ 
+struct WaveletTree {
+    WaveletTree *x = nullptr;
+    WaveletTree *y = nullptr;
+    ll low, mid, high;
+    vector<ll> bit, pref;
+    typedef vector<ll>::iterator iter;
+ 
+    WaveletTree(iter L, iter R, ll mn, ll mx) : x(nullptr), y(nullptr), low(mn), high(mx), mid((mn + mx) / 2) {
+        pref.push_back(0);
+        bit.push_back(0);
+        for (auto it = L; it != R; ++it) {
+            pref.push_back(pref.back() + c[*it]);
+            bit.push_back(bit.back() + (c[*it] <= mid));
+        }
+        if (low == high || L >= R) return;
+        auto pivot = stable_partition(L, R, [&](ll x) { return c[x] <= mid; });
+ 
+        x = new WaveletTree(L, pivot, low, mid);
+        y = new WaveletTree(pivot, R, mid + 1, high);
     }
-    int find(int a) { 
-        
-    }
-    int get(int a) {
-        if (a == p[a]) return xp[a];
-        return xp[a] + get(p[a]);
-    }
-    void add(int a, int x) { xp[a] += x; }
-    void join(int a, int b) {
-        a = find(a);
-        b = find(b);
+    // sum of elements in range less and or equal to v (1 indexed) (logarithmic time complexity)
+    ll leq_sum(ll l, ll r, ll v) {
+        if (l > r || low > v) return 0;
+        if (high <= v) return pref[r] - pref[l - 1];
+        ll mapLeft = bit[l - 1];
+        ll mapRight = bit[r];
+        return x->leq_sum(mapLeft + 1, mapRight, v) + y->leq_sum(l - mapLeft, r - mapRight, v);
     }
 };
-
+ 
 signed main() {
     cin.tie(0)->sync_with_stdio(0);
-    int n, m;
-    cin >> n >> m;
-    DSU dsu(n);
-    while (m--) {
-        string type;
-        cin >> type;
-        if (type == "join") {
-            int u, v;
-            cin >> u >> v;
-            dsu.join(u - 1, v - 1);
-        } else if (type == "add") {
-            int u, x;
-            cin >> u >> x;
-            dsu.add(u - 1, x);
-        } else {
-            int u;
-            cin >> u;
-            cout << dsu.get(u - 1) << '\n';
-        }
+ 
+    ll n, q;
+    cin >> n >> q;
+    vector<ll> nums(n);
+    for (ll &i : nums) cin >> i;
+ 
+    c = nums;
+    sort(c.begin(), c.end());
+    c.resize(unique(c.begin(), c.end()) - c.begin());
+    ll mx = -1e9 - 7, mn = 1e9 + 7;
+    for (ll &i : nums) {
+        i = lower_bound(c.begin(), c.end(), i) - c.begin();
+        mx = max(mx, c[i]);
+        mn = min(mn, c[i]);
     }
-    for (int &i : dsu.xp) cout << i << ' ';
+    WaveletTree tree(nums.begin(), nums.end(), mn, mx);
+ 
+    while (q--) {
+        ll l, r;
+        cin >> l >> r;
+        ll res = 1;
+        ll sum = tree.leq_sum(l, r, res);
+        while (sum >= res) {
+            res = sum + 1;
+            sum = tree.leq_sum(l, r, res);
+        }
+        cout << res << '\n';
+    }
 }

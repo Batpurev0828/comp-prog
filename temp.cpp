@@ -1,25 +1,25 @@
 #include <algorithm>
-#include <cmath>
 #include <iostream>
 #include <vector>
-typedef long long ll;
 using namespace std;
+using ll = long long;
 
-ll solve(vector<pair<ll, ll>> &items, ll d) {
-    
-}
+int main() {
+    int n;
+    cin >> n;
 
-vector<ll> calculate_costs(vector<int> W, vector<int> a, vector<int> b, vector<int> e) {
-    ll n = a.size();
-    ll q = e.size();
-    vector<ll> ans(q);
-    vector<pair<ll, ll>> items(n);
-    ll sum = 0;
-    for (ll i = 0; i < n; ++i) {
-        items[i] = {(ll)W[i], a[i] - b[i]};
-        sum += b[i];
+    vector<int> values(n);
+    for (int i = 0; i < n; i++) {
+        cin >> values[i];
     }
-    sort(items.begin(), items.end());
-    for (int i = 0; i < q; ++i) ans[i] = solve(items, e[i]);
-    return ans;
+    sort(values.begin(), values.end());
+
+    ll largest = 0;
+    for (int i = 0; i < n; i++) {
+        if (values[i] > largest + 1) {
+            break;
+        }
+        largest += values[i];
+    }
+    cout << largest + 1 << "\n";
 }
